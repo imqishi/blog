@@ -3,12 +3,12 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Nick的回收站
+title: Nick's Recycle bin
 subtitle:
-description:
+description: If you don’t like how the table is set, turn over the table.
 author: Nick
-language:
-timezone:
+language: en
+timezone: Asia/Shanghai
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
