@@ -1,8 +1,10 @@
 ---
 title: 全排列问题 -- Permutation
-date: 2017-08-13 18:54:28
+date: 2017-09-01 23:25:18
 tags: leetcode
 ---
+
+2017-08-13 18:54:28 第一版
 
 好久不写Leetcode了，果然手生的很，思路也僵化了，本科的时候都会写的全排列竟然折腾了一天才想明白怎么回事。还是要多加练习。
 
@@ -61,6 +63,7 @@ while i < len(nums):
     i += 1
 ```
 
+为什么 i = start 而不是 start + 1 呢？**因为start + 1时会丢失当前轮的组合**
 **这样的话得到的结果里会有部分缺失，并且有部分重复。原因是：上述操作把i位置和start位置元素互换并进行进一步递归，当下级递归结束返回的时候再进行i+1与start位置元素互换，这个时候的nums不是初始状态的nums了！（黑人问号）**
 
 **所以，正确的方法应该是：**
@@ -143,5 +146,77 @@ def permPart(nums)
         bak.reverse()
         nums[swap_pos+1:] = bak
     print nums
+```
+
+
+## New！2017-09-01 Leetcode 47
+
+47题和上面这道求所有的全排列的题目很像。但是不同之处就在于上面题目说明了给出的数字不会重复，**但是47题会给出重复的数字，需要去重**
+
+其实我个人的想法是如果能用数据结构来简化的问题尽量避免去搞事情，一来代码更容易理解，别人接手容易，并且重要的是自己写起来也容易呀！再者说了...现在内存不是很不值钱吗…可以允许的范围内就尽量简化代码啦…（说起来还是自己算法渣，懒！）
+
+果断改了改上面的代码，把插入的动作改成插入`tuple`，然后最后利用Python的set进行去重： `self.result = list(set(self.result))` 最后 `self.result = [ list(item) for item in self.result]` 强制类型转换一下返回结果完事儿。
+
+提交以后超时了！wtf...怎么玩呢...
+
+于是又把 `result` 改成了 dict，在插入的时候以 `'-'.join(str(e) for e in nums)` 作为键，记得哈希的搜索应该挺快的吧，插入前用 `key in self.result` 判断一下总行了吧...
+
+结果坑爹的dict并不奏效，依然超时...然而我在网上看别人Java写的用HashMap就可以通过啊 =。= 真是醉，看来不能走捷径只能好好学算法了 T  T
+
+#### **New DFS**
+
+新的想法与上面的有所差异，其实对于DFS算法来说，这个写法应该更具有普适应性，更容易理解。前面的算法我们还是有“交换”的思想在里面，而我所认为的更普适应性的算法应该是更具备“常理性”，也即不应该变换原来的数据，而是在原来数据上不断地去往下搜。
+
+根据对上面递归算法的理解，我们知道原来的函数具备的 **start** 变量用于交换时下标的记录。这里既然我们要更“普适应”，应该是每次进入递归函数都跑一遍所有的数据。我们需要增加一个参数 **sub_result** 用于记录当前轮所构成的部分排列，一个参数 **used** 记录 nums 中每个位置数字被使用过没有。**个人感觉两算法差别关键在此，之前我们是不断交换、记录，并没有单独以变量记录下来，这导致了在判断重复的时候就难以判断。**
+
+接下来就是**决定什么时候可以跳过该轮的组合生成**，看了几个解释，感觉都不太好，并且基本都是抄的差不多的。最后在 [这里](https://www.tianmaying.com/tutorial/LC47) 看到了一个更容易理解 **used** 变量条件控制的解释。大体意思简洁版如下：
+
+重复是如何产生的呢？结合 nums 的下标变化，不难发现，**在我们枚举的过程中是以下标为基准进行枚举，而下标的不同组合所构成的实际组合答案却是一样的**。
+
+不难想到，这样产生的重复解决方法是，对于一个位置的同一个取值，只枚举一次，重复时跳过不进行枚举。因此，我们可以预处理一下 nums 将其先**排序**。
+
+used 数组先预置为 False，当一个位置被走过，那么置为 True，每当退出 sub_permute，当前位置 used 重置为 False。很显然的一点是如果 used 当前位置已经置为 True 此轮循环可以直接跳过。
+
+那么当挨着的数据相同时如何判断是否需要交换呢？这时候就要用到 used[i - 1] 咯。按照 [这里](https://www.tianmaying.com/tutorial/LC47) 的理解由于每次使用的一定是所有相同数字中最右侧的一个，所以对于一个取值，如果它右侧的数字是已经被使用过了的，就同样说明这个数是当前所有相同数字中最右侧的可用的了。可以反推得知，如果一个数左侧的数字没被使用过，说明这个数字不可用。
+
+换种思路理解，随着DFS的进行，大pos位的数字会被不断换到左侧，同样的l两个数字在构成新串的时候就会出现 used 数组右边的先于左边的被访问，这个时候就会出现重复（比如仅考虑1 2 2，第一轮得到下标为0，1，2的一个组合，第二轮会得到0，2，1的组合，这两个组合的结果其实是一样的，在第二轮的时候2位置先被访问，此时他左侧的位置是1，used[1]为False，说明已经有一个同样的组合了，因而可以跳过。由此可推多个数字重复的时候左侧相同的将会不断被跳过，直到出现不同的数字为止）
+
+至于有没有更好的理解方法...也希望大神们邮件我0.0~~感谢！
+
+代码如下：
+
+```python
+import copy
+class Solution(object):
+    result = []
+    def permuteUnique(self, nums):
+        """
+        :type nums: List[int]
+        :rtype: List[List[int]]
+        """
+        self.result = []
+        nums.sort()
+        used = [ False ] * len(nums)
+        self.sub_permute(nums, used, [])
+        return self.result
+
+    def sub_permute(self, nums, used, sub_result):
+        if len(sub_result) == len(nums):
+            self.result.append(copy.copy(sub_result))
+            return
+
+        i = 0
+        while i < len(nums):
+            if used[i] is False:
+                if i > 0 and nums[i] == nums[i-1] and used[i-1] is False:
+                    i += 1
+                    continue
+                sub_result.append(nums[i])
+                used[i] =  True
+                self.sub_permute(nums, used, sub_result)
+                used[i] = False
+                sub_result.pop()
+
+            i += 1
 ```
 
