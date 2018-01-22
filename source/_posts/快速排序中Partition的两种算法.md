@@ -24,7 +24,7 @@ Leetcode 75 Sort Colors
 
 ```python
 def hoarePartition(nums, lo, hi):
-	pivot = nums[lo]
+    pivot = nums[lo]
     i, j = lo, hi
     while True:
     	while nums[i] < pivot and i <= hi:
@@ -44,7 +44,7 @@ def hoarePartition(nums, lo, hi):
 
 ```python
 def lomutoPartition(nums, lo, hi):
-	pivot = nums[hi]
+    pivot = nums[hi]
     i = lo
     j = lo
     while j < hi:
