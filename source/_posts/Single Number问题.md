@@ -1,9 +1,8 @@
 ---
 title: Single Number问题
-date: 2017-11-17 23:16:00
+date: 2018-01-25 23:16:00
 tags: [leetcode,bitop]
 ---
-
 
 ### 问题描述
 
@@ -89,5 +88,39 @@ class Solution(object):
             a=ta
 
         return a | b
+```
+
+### 题目变形-Leetcode 260
+
+一个数组中除了两个数字只出现一次外其他都出现两次，求这两个数字，要求时间复杂度 O(n) 空间复杂度 O(1)
+
+分析：首先可以想到的是，将这些数字进行异或，可以得到两个出现一次数字的异或结果的值diff。下面要考虑的就是如何把这两个数字找出来。
+
+我们知道，两个数字如果不同，异或的结果（位序列）至少有一位是1。因此我们只要这两个数字中的一个有一位的异或结果与第一轮所获得的 diff 有一位异或结果为0，另一个数字同一位置与 diff 的异或结果为1，就可以找到这两个数。因为0异或任何数都是不会改变原数字的，所以我们应该找一个为1的位进行区分。（当然也可以是多位，但是注意不能是diff的原始值，那样的话异或后结果相同就无法区分了。为了方便，我们只需要找一位不同的即可）
+
+为了让这个“寻找一个区分两个数字的位”的操作更快，我们利用负数在计算机中以补码存储这一特点，使用 diff &= -diff 快速地获得一位让两个数字得以区分的 diff。
+
+最终代码如下：
+
+```python
+class Solution(object):
+    def singleNumberByBinaryOp(self, nums):
+        """
+        :type nums: List[int]
+        :rtype: List[int]
+        """
+        diff = 0
+        for n in nums:
+            diff ^= n
+        diff &= -diff
+        
+        ret = [0, 0]
+        for n in nums:
+            if n & diff == 0:
+                ret[0] ^= n
+            else:
+                ret[1] ^= n
+        
+        return ret
 ```
 
