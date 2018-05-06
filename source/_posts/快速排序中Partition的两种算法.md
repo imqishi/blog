@@ -22,40 +22,71 @@ Leetcode 75 Sort Colors
 
 以前上数据结构的时候曾经学过快排，不过当时课本上只介绍了一种方法，就是**一个游标i从左往右寻找比pivot大的，另一个游标 j 从右往左寻找比pivot小的，将两个数字不断交换，直至 i 和 j 相遇循环结束。最后，记得交换 j 位置的元素和最开始的元素**。
 
-```python
-def hoarePartition(nums, lo, hi):
-    pivot = nums[lo]
-    i, j = lo, hi
-    while True:
-    	while nums[i] < pivot and i <= hi:
-         	i += 1
-        while nums[j] >= pivot and j >= lo:
-        	j -= 1
-        if i >= j:
-          	print nums
-        	return j
-        nums[i], nums[j] = nums[j], nums[i]
-    nums[lo], nums[j] = nums[j], nums[lo]
+```java
+public int hoarePartition(int[] nums, int start, int end) {
+    int pivot = nums[start];
+    int i = start - 1, j = end + 1;
+    while (true) {
+        do {
+            i ++;
+        } while (nums[i] < pivot);
+
+        do {
+            j --;
+        } while (nums[j] > pivot);
+
+        if (i >= j) {
+            return j;
+        }
+
+        int t = nums[i];
+        nums[i] = nums[j];
+        nums[j] = t;
+    }
+}
+```
+
+这种写法实在是太绕了，do-while在工程中几乎不会用到，这里还是感觉数据结构课上老师讲的下面这种做法简单易懂！主要是代码好写，没那么多乱七八糟的条件，又-1又+1的，麻烦死了...
+
+```java
+public int bookPartition(int[] nums, int start, int end) {
+    int pivot = nums[start];
+    while (start < end) {
+        while (start < end && nums[end] >= pivot) {
+            end --;
+        }
+        nums[start] = nums[end];
+        while (start < end && nums[start] <= pivot) {
+            start ++;
+        }
+        nums[end] = nums[start];
+    }
+    nums[start] = pivot;
+    return start;
+}
 ```
 
 这种方法为什么不能用在题目中呢？或者说能不能用呢？我也没有想出来...求大佬解释，我的邮箱 imqishi#hotmail.com。 一种不成熟的解释方法是，Hoare算法是双向迭代的，这就会导致不管从0开始还是从2开始，一旦走了就没办法回头了，因为我们并不知道这串数字里会不会有0或者2，假设没有2，你把最后一个置成2，然后往前继续搜，最后发现2放多了，得置成1或者0，这就不是一遍遍历了。因此想要一遍遍历必需得固定住一头，从另一头走过来，边走边覆盖值。也就是借助下面Partition算法的思想。
 
 看答案解析的时候发现这种算法叫Hoare Partition，还有另一个Lomuto Partition，方法是：**i 指示最前面的大于 pivot 的元素位置，j 从前往后滑动来调整元素位置。每次 j 碰到小于 pivot 的元素，则 i 位置的元素和 j 位置的元素交换，i 指向下一个大于 pivot 的元素。最后，记得交换 i 位置的元素和最末尾的元素**。
 
-```python
-def lomutoPartition(nums, lo, hi):
-    pivot = nums[hi]
-    i = lo
-    j = lo
-    while j < hi:
-      	if nums[j] <= pivot:
-          	nums[i], nums[j] = nums[j], nums[i]
-            i += 1
-    	j += 1
-   	
-    nums[i], nums[hi] = nums[hi], nums[i]
-    print nums
-    return i
+```java
+public int lomutoPartition(int[] nums, int start, int end) {
+    int pivot = nums[end];
+    int i = start - 1;
+    for (int j = start; j < end; j ++) {
+        if (nums[j] <= pivot) {
+            i ++;
+            int t = nums[i];
+            nums[i] = nums[j];
+            nums[j] = t;
+        }
+    }
+    int t = nums[i + 1];
+    nums[i + 1] = pivot;
+    nums[end] = t;
+    return i + 1;
+}
 ```
 
 通过这种方法，可以看出 i 的位置始终是比 pivot 大的从左往右数的第一个数的位置。这样的话就很容易去进行数字的覆盖，按照这种思路，可以得到解决方案如下，形成一个 0~i~j~n的三个范围，分别对应了0，1，2：

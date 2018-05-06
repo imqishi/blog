@@ -1,12 +1,16 @@
 ---
 title: 全排列问题 -- Permutation
-date: 2017-09-01 23:25:18
+date: 2018-05-05 16:00:00
 tags: leetcode
 ---
+
+2017-09-01 23:25:18 第二版重制，增加相关问题推荐链接
 
 2017-08-13 18:54:28 第一版
 
 好久不写Leetcode了，果然手生的很，思路也僵化了，本科的时候都会写的全排列竟然折腾了一天才想明白怎么回事。还是要多加练习。
+
+[推荐链接](https://leetcode.com/problems/permutations/discuss/18239/A-general-approach-to-backtracking-questions-in-Java-(Subsets-Permutations-Combination-Sum-Palindrome-Partioning))
 
 ## 问题分析
 
@@ -218,5 +222,35 @@ class Solution(object):
                 sub_result.pop()
 
             i += 1
+```
+
+## Leetcode 377. Combination Sum IV
+
+给一个无重复数字的数组，但是里面的数字可以重复使用，求有多少种情况可以得到给定的 target。注意， 1 1 2 和 2 1 1 被认定是不同的组合情况。
+
+老思路，不让求具体的情况那就是动态规划。这个题的关键在于怎么进行动态规划。我们设置数组 dp[i] 用来表示构成 i 有几种情况，那么只需要从 1 计算到 target 就可以得到所有的情况数。对于每一个新的 i，我们计算所有小于等于 i 的 nums[j] 可以和 dp 进行多少组合，也即
+
+```
+dp[i] += dp[i - nums[j]]    (i - nums[j] >= 0)
+```
+
+因为计算dp的时候本身就是算了有重复数字的（比如2的话 1 1 已经是算进去的了）因此不会出现漏算有重复数字的情况。
+
+代码如下：
+
+```java
+public int combinationSum4(int[] nums, int target) {
+    int[] dp = new int[target + 1];
+    dp[0] = 1;
+    for (int i = 1; i <= target; i ++) {
+        for (int j = 0; j < nums.length; j ++) {
+            if (i - nums[j] >= 0) {
+                dp[i] += dp[i - nums[j]];
+            }
+        }
+    }
+
+    return dp[target];
+}
 ```
 
