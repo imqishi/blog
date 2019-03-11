@@ -33,46 +33,50 @@ class Solution(object):
         for i in range(m):
             dp.append([])
             for j in range(n):
-                if i == 0:
-                    dp[i].append(1)
-                elif j == 0:
+                if i == 0 or j == 0:
                     dp[i].append(1)
                 else:
                     dp[i].append(0)
-
-        i = 1
-        while i < m:
-            j = 1
-            while j < n:
+		for i in range(1, m):
+            for j in range(1, n):
                 dp[i][j] = dp[i-1][j] + dp[i][j-1]
-                j += 1
-            i += 1
 
         return dp[m-1][n-1]
 ```
 
-到这里我们可以看到，虽然我们用了一个m x n的数组记录每个点的路径数，但是其实我们只用了上一次和这一次两轮的状态，所以可以将空间复杂度进行优化，只用两个一维的数组记录状态：
+到这里我们可以看到，虽然我们用了一个 m x n 的数组记录每个点的路径数，但是其实我们只用了上一次和这一次两轮的状态，所以可以将空间复杂度进行优化，只用两个一维的数组记录状态：
 
 ```python
 class Solution(object):
-  	def uniquePathsDP1(self, m, n):
+	def uniquePathsDP1(self, m, n):
         if m > n:
             m, n = n, m
         cur = [1] * m
         last = [1] * m
-        j = 1
-        while j < n:
-            i = 1
-            while i < m:
+        
+        for j in range(1, n):
+            for i in range(1, m):
                 cur[i] = cur[i-1] + last[j]
-                i += 1
             cur, last = last, cur
-            j += 1
 
         return last[m-1]
-```
+"""
+注意，这里cur和last的长度为m，因此我们是以列为基准从左向右推的，因此这两层循环反过来了，这个答案是第一遍做的时候从leetcode抄来的，并且看起来很费劲，因为和上面的想法正好反着，上面是从上往下推的。
+完全可以把cur和last的长度设置为n，然后按照从上往下的顺序来做，像下面这样：
+"""
+	def uniquePathsDP1Normal(self, m, n):
+        if m > n:
+            m, n = n, m
+        cur = [1] * n
+        last = [1] * n
+        
+        for i in range(1, m):
+            for j in range(1, n):
+                cur[j] = cur[j-1] + last[j]
+            cur, last = last, cur
 
-*这里要注意的是，我们的循环把 i 和 j 换过来了，因为我们是以列为基准往右推的。所以应该先保持列不动（j循环在外层而i在内层）*
+        return last[n-1]
+```
 
 再仔细看看，设了两个一维数组的目的是进行上一次状态的保存。而我们完全可以利用一个数组来解决这个问题。因为递推计算的过程是有序的，并且用的是上轮的数据，不会对未来产生影响。我们要加的是左侧和上侧的数值，上侧就是 dp[i-1]，而左侧其实就是 dp[i]，因此有如下优化：
 
@@ -82,16 +86,15 @@ class Solution(object):
         if m > n:
             m, n = n, m
         dp = [1] * m
-        j = 1
-        while j < n:
-            i = 1
-            while i < m:
+        
+        for j in range(1, n):
+            for i in range(1, m):
                 dp[i] += dp[i-1]
-                i += 1
-            j += 1
         
         return dp[m-1]
 ```
+
+同样的，这里是以m维度递推的，完全可以改成n维度上的向下递推，这里就不赘述了。
 
 ### 法二：数学问题
 
@@ -99,11 +102,11 @@ class Solution(object):
 
 每个路径都要走 m+n-2 步。也就意味着不管是怎么绕，都要往下走 m 步，往右走 n-1 步。那么这就变成了一个排列组合的问题...
 
+```
 UniqueStepNum = choose (m-1) from (m+n-2) = choose (n-1) from (m+n-2)
-
 = (m+n-2)! / [(m-1)! * (n-1)!]
-
-= ( (m+n-2) / (m-1) ) * ( (m+n-3) / (m-2) ) * ... * (n / 1)
+= ((m+n-2) / (m-1)) * ((m+n-3) / (m-2)) * ... * (n / 1)
+```
 
 所以...只要按公式推就好了 = =||
 
@@ -151,18 +154,14 @@ class Solution(object):
                         dp[i].append(1)
                 else:
                     dp[i].append(0)
-        
+
         # let's go...
-        i = 1
-        while i < m:
-            j = 1
-            while j < n:
+        for i in range(1, m):
+            for j in range(1, n):
                 if obstacleGrid[i][j] == 1:
                     dp[i][j] = 0
                 else:
                     dp[i][j] = dp[i-1][j] + dp[i][j-1]
-                j += 1
-            i += 1
 
         return dp[m-1][n-1]
 ```
